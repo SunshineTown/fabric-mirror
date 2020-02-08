@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "mirror",
+  "version": "${version}",
+  "name": "Mirror Mod",
+  "authors": [
+    "extclp"
+  ],
+  "environment": "SERVER",
+  "entrypoints": {
+    "main": [
+      "com.extclp.mirror.MirrorMod"
+    ]
+  },
+  "depends": {
+    "minecraft": "*",
+    "fabricloader": "*",
+    "fabric": "*"
+  }
+}
