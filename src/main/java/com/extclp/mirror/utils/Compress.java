@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
@@ -36,6 +37,7 @@ public class Compress {
                     }
                 } else {
                     ZipEntry zipEntry = new ZipEntry(fileName);
+                    zipEntry.setLastModifiedTime(FileTime.fromMillis(f.lastModified()));
                     stream.putNextEntry(zipEntry);
                     Files.copy(f, stream);
                 }
@@ -77,6 +79,7 @@ public class Compress {
                 File newFile = new File(to, uri.relativize(f.toURI()).getPath());
                 newFile.getParentFile().mkdirs();
                 Files.copy(f, newFile);
+                newFile.setLastModified(f.lastModified());
             } else {
                 File[] childs = f.listFiles();
                 if(childs == null ||childs.length == 0){

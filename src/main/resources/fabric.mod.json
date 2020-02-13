@@ -13,7 +13,6 @@
     ]
   },
   "depends": {
-    "minecraft": "*",
     "fabricloader": "*",
     "fabric": "*"
   }
