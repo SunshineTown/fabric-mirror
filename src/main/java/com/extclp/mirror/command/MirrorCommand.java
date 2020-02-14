@@ -14,6 +14,7 @@ import net.minecraft.command.arguments.MessageArgumentType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
@@ -159,24 +160,24 @@ public class MirrorCommand {
         String failurePrefix = getMessages().returnMirrorFailurePrefix + Formatting.RESET;
 
         if(backUpThread != null || returnMirrorThread != null){
-            source.sendFeedback(new LiteralText(failurePrefix + MirrorMod.getMessages().otherTaskRunning), true);
+            sendToAll(source, new LiteralText(failurePrefix + MirrorMod.getMessages().otherTaskRunning));
             return 0;
         }
         MirrorInfo mirrorInfo = MirrorMod.getMirrors().get(name);
         if(mirrorInfo == null){
-            source.sendFeedback(new TranslatableText(failurePrefix + getMessages().unknownMirror, name), true);
+            sendToAll(source, (new TranslatableText(failurePrefix + getMessages().unknownMirror, name)));
             return 0;
         }
         File backupFile = getBackFile(mirrorInfo);
         if(!backupFile.exists()){
             getMirrors().remove(name);
             saveMirrors();
-            source.sendFeedback(new TranslatableText(failurePrefix + getMessages().mirrorNotFound, createMirrorText(source.getMinecraftServer(), mirrorInfo)), true);
+            sendToAll(source, (new TranslatableText(failurePrefix + getMessages().mirrorNotFound, createMirrorText(source.getMinecraftServer(), mirrorInfo))));
         }
         File worldFolder = new File(source.getMinecraftServer().getLevelName());
 
         if(checkDiskIsFull(worldFolder)){
-            source.sendFeedback(new LiteralText(failurePrefix + getMessages().diskFull), true);
+            sendToAll(source, (new LiteralText(failurePrefix + getMessages().diskFull)));
             return 0;
         }
         if (!confirm) {
@@ -207,7 +208,7 @@ public class MirrorCommand {
         returnMirrorThread = new Thread(() -> {
             try {
                 cancel = false;
-                source.sendFeedback(new TranslatableText(getMessages().unzipMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)), true);
+                sendToAll(source, new TranslatableText(getMessages().unzipMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
                 if(mirrorInfo.isCompress()){
                     Compress.unzip(backupFile, tempWorldFolder);
                 } else {
@@ -218,10 +219,10 @@ public class MirrorCommand {
                     returnMirrorThread = null;
                     Runtime.getRuntime().removeShutdownHook(shutdownHookThread);
                     tempWorldFolder.delete();
-                    source.sendFeedback(new LiteralText(failurePrefix + getMessages().unzipMirrorFailure), true);
+                    sendToAll(source, new LiteralText(failurePrefix + getMessages().unzipMirrorFailure));
                     return;
                 }
-                source.sendFeedback(new TranslatableText(getMessages().serverWillRestart, createMirrorText(source.getMinecraftServer(), mirrorInfo)), true);
+                sendToAll(source, new TranslatableText(getMessages().serverWillRestart, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
 
                 LiteralText cancelButton = buttonText(getMessages().cancelReturnMirrorButton, "/mirror cancel", name);
 
@@ -233,7 +234,7 @@ public class MirrorCommand {
                         tempWorldFolder.delete();
                         return;
                     }
-                    source.sendFeedback(new TranslatableText(getMessages().serverRestatingCountdown, i, cancelButton), true);
+                    sendToAll(source, new TranslatableText(getMessages().serverRestatingCountdown, i, cancelButton));
                     Thread.sleep(1000);
                 }
                 source.getMinecraftServer().getPlayerManager().disconnectAllPlayers();
@@ -245,7 +246,7 @@ public class MirrorCommand {
                 Runtime.getRuntime().removeShutdownHook(shutdownHookThread);
                 tempWorldFolder.delete();
                 e.printStackTrace();
-                source.sendFeedback(exceptionMessage(String.format(getMessages().unzipMirrorFailure, getMirrorName(mirrorInfo)), e), true);
+                sendToAll(source, exceptionMessage(String.format(getMessages().unzipMirrorFailure, getMirrorName(mirrorInfo)), e));
             }
         });
         returnMirrorThread.start();
@@ -260,7 +261,7 @@ public class MirrorCommand {
         }
         mirrorInfo.setLock(true);
         saveMirrors();
-        source.sendFeedback(new TranslatableText(getMessages().lockMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)), true);
+        sendToAll(source, new TranslatableText(getMessages().lockMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
 
         return 1;
     }
@@ -272,7 +273,7 @@ public class MirrorCommand {
         }
         mirrorInfo.setLock(false);
         saveMirrors();
-        source.sendFeedback(new TranslatableText(getMessages().unlockMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)), true);
+        sendToAll(source, new TranslatableText(getMessages().unlockMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
         return 1;
     }
 
@@ -282,15 +283,15 @@ public class MirrorCommand {
 
         MirrorInfo mirrorInfo = getMirrors().get(name);
         if(mirrorInfo == null){
-            source.sendFeedback(new TranslatableText(failurePrefix + getMessages().unknownMirror, name), true);
+            sendToAll(source, new TranslatableText(failurePrefix + getMessages().unknownMirror, name));
             return 0;
         }
         if(mirrorInfo.isLock()){
-            source.sendFeedback(new TranslatableText(failurePrefix + getMessages().mirrorIsLocked, createMirrorText(source.getMinecraftServer(), mirrorInfo)), true);
+            sendToAll(source, new TranslatableText(failurePrefix + getMessages().mirrorIsLocked, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
             return 0;
         }
         if(backUpThread != null || returnMirrorThread != null){
-            source.sendFeedback(new LiteralText(failurePrefix + MirrorMod.getMessages().otherTaskRunning), true);
+            sendToAll(source, new LiteralText(failurePrefix + MirrorMod.getMessages().otherTaskRunning));
             return 0;
         }
         if(!confirm){
@@ -303,13 +304,13 @@ public class MirrorCommand {
         File backupFile = getBackFile(mirrorInfo);
         if(!backupFile.exists()){
             getMirrors().remove(name);
-            source.sendFeedback(new TranslatableText(failurePrefix + getMessages().mirrorNotFound, createMirrorText(source.getMinecraftServer(), mirrorInfo)), true);
+            sendToAll(source, new TranslatableText(failurePrefix + getMessages().mirrorNotFound, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
         }
         getMirrors().remove(name);
         backupFile.delete();
         saveMirrors();
-        source.sendFeedback(new TranslatableText(getMessages().deleteMirror,
-                createMirrorText(source.getMinecraftServer(), mirrorInfo)), true);
+        sendToAll(source, new TranslatableText(getMessages().deleteMirror,
+                createMirrorText(source.getMinecraftServer(), mirrorInfo)));
         return 1;
     }
 
@@ -318,14 +319,14 @@ public class MirrorCommand {
         String failurePrefix = getMessages().createMirrorFailurePrefix + Formatting.RESET;
 
         if(backUpThread != null || returnMirrorThread != null){
-            source.sendFeedback(new TranslatableText(failurePrefix + getMessages().otherTaskRunning), true);
+            sendToAll(source, new TranslatableText(failurePrefix + getMessages().otherTaskRunning));
             return 0;
         }
         MirrorInfo mirrorInfo = getMirrors().get(name);
 
         if(mirrorInfo != null){
             if(mirrorInfo.isLock()){
-                source.sendFeedback(new TranslatableText(failurePrefix + getMessages().mirrorIsLocked, createMirrorText(source.getMinecraftServer(), mirrorInfo)), true);
+                sendToAll(source, new TranslatableText(failurePrefix + getMessages().mirrorIsLocked, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
                 return 0;
             }
             if(!overwrite){
@@ -341,14 +342,14 @@ public class MirrorCommand {
             }
         } else {
             if(getMirrors().size() >= getConfig().createMirrorLimit){
-                source.sendFeedback(new TranslatableText(failurePrefix + getMessages().createMirrorLimit,
-                        getMirrors().size(), getConfig().createMirrorLimit), true);
+                sendToAll(source, new TranslatableText(failurePrefix + getMessages().createMirrorLimit,
+                        getMirrors().size(), getConfig().createMirrorLimit));
                 return 0;
             }
         }
         File worldFolder = new File(source.getMinecraftServer().getLevelName());
         if(checkDiskIsFull(worldFolder)){
-            source.sendFeedback(new LiteralText(failurePrefix + getMessages().diskFull), true);
+            sendToAll(source, new LiteralText(failurePrefix + getMessages().diskFull));
             return 0;
         }
         long startDate = System.currentTimeMillis();
@@ -375,7 +376,7 @@ public class MirrorCommand {
         MirrorInfo finalMirrorInfo = mirrorInfo;
         backUpThread = new Thread(() -> {
             try {
-                source.sendFeedback(new TranslatableText(getMessages().startBackup, createMirrorText(source.getMinecraftServer(), finalMirrorInfo)), true);
+                sendToAll(source, new TranslatableText(getMessages().startBackup, createMirrorText(source.getMinecraftServer(), finalMirrorInfo)));
                 if(getConfig().compressBackupFile){
                     Compress.zip(worldFolder, backupOutFile);
                 }else {
@@ -383,11 +384,11 @@ public class MirrorCommand {
                 }
                 getMirrors().put(name, finalMirrorInfo);
                 saveMirrors();
-                source.sendFeedback(new TranslatableText(getMessages().backupFinish, System.currentTimeMillis() - startDate), true);
+                sendToAll(source, new TranslatableText(getMessages().backupFinish, System.currentTimeMillis() - startDate));
             } catch (Exception e) {
                 backupOutFile.delete();
                 e.printStackTrace();
-                source.sendFeedback(exceptionMessage(failurePrefix + getMessages().backupFailure, e), true);
+                sendToAll(source, exceptionMessage(failurePrefix + getMessages().backupFailure, e));
             }
             backUpThread = null;
             if(autoSave){
@@ -430,9 +431,9 @@ public class MirrorCommand {
     private static int cancelTask(ServerCommandSource source) {
         if(returnMirrorThread != null){
             MirrorCommand.cancel = true;
-            source.sendFeedback(new LiteralText(getMessages().cancelReturnMirror), true);
+            sendToAll(source, new LiteralText(getMessages().cancelReturnMirror));
         } else {
-            source.sendFeedback(new TranslatableText(MirrorMod.getMessages().noneReturnMirrorTask), true);
+            sendToAll(source, new TranslatableText(MirrorMod.getMessages().noneReturnMirrorTask));
         }
         return 1;
     }
@@ -444,6 +445,18 @@ public class MirrorCommand {
         style.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableText(buttonText.description, name)));
         literalText.setStyle(style);
         return literalText;
+    }
+
+    private static void sendToAll(ServerCommandSource source, Text text) {
+        Text sendToOther = new TranslatableText("chat.type.admin",source.getDisplayName(), text).formatted(Formatting.GRAY, Formatting.ITALIC);
+        for (ServerPlayerEntity player : source.getMinecraftServer().getPlayerManager().getPlayerList()) {
+            if(player.equals(source.getEntity())){
+                player.sendMessage(text);
+            } else {
+                player.sendMessage(sendToOther);
+            }
+        }
+        source.getMinecraftServer().sendMessage(text);
     }
 
     private static boolean getAutoSave(MinecraftServer server) {
