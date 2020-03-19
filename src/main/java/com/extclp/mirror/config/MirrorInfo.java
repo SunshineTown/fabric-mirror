@@ -1,54 +1,34 @@
 package com.extclp.mirror.config;
 
-import com.google.gson.annotations.SerializedName;
-
 import java.util.UUID;
 
 public class MirrorInfo{
 
-    private String name;
+    public final String name;
 
-    private UUID owner;
+    public final UUID creator;
 
-    private String fileName;
+    public final String fileName;
 
-    private long createDate;
+    public final long createTime;
 
     private String description;
 
-    @SerializedName(value = "isCompress", alternate = "isZip")
-    private boolean isCompress;
+    public final boolean compress;
 
-    @SerializedName(value = "lock", alternate = "final_")
     private boolean lock;
 
-    public MirrorInfo(String name, UUID owner, String fileName, long createDate, String description, boolean isCompress){
+    public MirrorInfo(String name, UUID creator, String fileName, long createDate, String description, boolean isCompress){
         this.name = name;
-        this.owner = owner;
+        this.creator = creator;
         this.fileName = fileName;
-        this.createDate = createDate;
+        this.createTime = createDate;
         this.description = description;
-        this.isCompress = isCompress;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public long getCreateDate() {
-        return createDate;
+        this.compress = isCompress;
     }
 
     public String getDescription() {
         return description;
-    }
-
-    public UUID getOwner() {
-        return owner;
     }
 
     public void setLock(boolean lock) {
@@ -57,9 +37,5 @@ public class MirrorInfo{
 
     public boolean isLock() {
         return lock;
-    }
-
-    public boolean isCompress() {
-        return isCompress;
     }
 }

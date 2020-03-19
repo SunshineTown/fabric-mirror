@@ -93,7 +93,7 @@ public class MirrorCommand {
     }
 
     public static String getMirrorName(MirrorInfo mirrorInfo){
-        return  (mirrorInfo.isLock() ? getConfig().lockMirrorNameColor : getConfig().mirrorNameColor) + mirrorInfo.getName();
+        return  (mirrorInfo.isLock() ? getConfig().lockMirrorNameColor : getConfig().mirrorNameColor) + mirrorInfo.name;
     }
 
     public static LiteralText createMirrorText(MinecraftServer server, MirrorInfo mirrorInfo){
@@ -101,18 +101,18 @@ public class MirrorCommand {
 
         StringBuilder descBuilder = new StringBuilder();
         descBuilder.append(String.format(getMessages().listMirrorCreatedTime, getConfig().mirrorDateFormat.
-                format(mirrorInfo.getCreateDate()), mirrorInfo.getDescription()));
+                format(mirrorInfo.createTime), mirrorInfo.getDescription()));
         descBuilder.append('\n');
         descBuilder.append(Formatting.RESET);
         descBuilder.append(String.format(getMessages().listMirrorDescription, mirrorInfo.getDescription()));
-        if(mirrorInfo.getOwner() != null){
+        if(mirrorInfo.creator != null){
             descBuilder.append('\n');
             descBuilder.append(Formatting.RESET);
-            GameProfile creator = server.getUserCache().getByUuid(mirrorInfo.getOwner());
+            GameProfile creator = server.getUserCache().getByUuid(mirrorInfo.creator);
             if(creator != null){
                 descBuilder.append(String.format(getMessages().listMirrorOwner, creator.getName()));
             } else {
-                descBuilder.append(String.format(getMessages().listMirrorOwner, mirrorInfo.getOwner()));
+                descBuilder.append(String.format(getMessages().listMirrorOwner, mirrorInfo.creator));
             }
         }
         if(mirrorInfo.isLock()){
@@ -121,7 +121,7 @@ public class MirrorCommand {
             descBuilder.append(getMessages().listMirrorLock);
         }
         Text showText = Texts.of(descBuilder.toString(), getConfig().mirrorDateFormat.
-                format(mirrorInfo.getCreateDate()), mirrorInfo.getDescription());
+                format(mirrorInfo.createTime), mirrorInfo.getDescription());
         text.setStyle(new Style().setHoverEvent(
                 new HoverEvent(HoverEvent.Action.SHOW_TEXT, showText)));
         return text;
@@ -153,8 +153,8 @@ public class MirrorCommand {
         source.sendFeedback(Texts.of(getMessages().listMirrorHeader), false);
         for (MirrorInfo mirrorInfo : getMirrors().values()) {
             LiteralText mirrorText = createMirrorText(source.getMinecraftServer(), mirrorInfo);
-            LiteralText returnButtonText = buttonText(getMessages().listMirrorReturnButton, String.format("/mirror return %s", mirrorInfo.getName()), mirrorInfo.getName());
-            LiteralText deleteButtonText = buttonText(getMessages().listMirrorDeleteButton, String.format("/mirror delete %s", mirrorInfo.getName()), mirrorInfo.getName());
+            LiteralText returnButtonText = buttonText(getMessages().listMirrorReturnButton, String.format("/mirror return %s", mirrorInfo.name), mirrorInfo.name);
+            LiteralText deleteButtonText = buttonText(getMessages().listMirrorDeleteButton, String.format("/mirror delete %s", mirrorInfo.name), mirrorInfo.name);
             source.sendFeedback(Texts.of(getMessages().listMirror, mirrorText, returnButtonText, deleteButtonText), false);
         }
 
@@ -216,7 +216,7 @@ public class MirrorCommand {
             try {
                 cancel = false;
                 sendToAll(source, Texts.of(getMessages().unzipMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
-                if(mirrorInfo.isCompress()){
+                if(mirrorInfo.compress){
                     PathUtils.unzip(backupFile.toPath(), tempWorldFolder.toPath());
                 } else {
                     PathUtils.copy(backupFile.toPath(), tempWorldFolder.toPath());
@@ -477,7 +477,7 @@ public class MirrorCommand {
     }
 
     private static File getBackFile(MirrorInfo mirrorInfo){
-        return new File(getConfig().backupsFolder, mirrorInfo.getFileName());
+        return new File(getConfig().backupsFolder, mirrorInfo.fileName);
     }
 
     private static boolean checkDiskIsFull(File worldFile){
