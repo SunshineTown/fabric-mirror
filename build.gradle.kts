@@ -10,7 +10,7 @@ dependencies {
     minecraft("com.mojang:minecraft:${properties["minecraft_version"]}")
     mappings("net.fabricmc:yarn:${properties["yarn_mappings"]}:v2")
     modCompile("net.fabricmc:fabric-loader:${properties["loader_version"]}")
-    modCompile(	"net.fabricmc.fabric-api:fabric-api:${properties["fabric_version"]}")
+    modCompile(	"net.fabricmc.fabric-api:fabric-commands-v0:0.1.2+28f8190f42")
 }
 
 configure<JavaPluginConvention> {

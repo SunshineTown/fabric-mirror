@@ -4,6 +4,7 @@ import com.extclp.mirror.MirrorMod;
 import com.extclp.mirror.config.ButtonText;
 import com.extclp.mirror.config.MirrorInfo;
 import com.extclp.mirror.utils.Compress;
+import com.extclp.mirror.utils.Texts;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -95,7 +96,7 @@ public class MirrorCommand {
     }
 
     public static LiteralText createMirrorText(MinecraftServer server, MirrorInfo mirrorInfo){
-        LiteralText text = new LiteralText(getMirrorName(mirrorInfo));
+        LiteralText text = Texts.of(getMirrorName(mirrorInfo));
 
         StringBuilder descBuilder = new StringBuilder();
         descBuilder.append(String.format(getMessages().listMirrorCreatedTime, getConfig().mirrorDateFormat.
@@ -113,7 +114,7 @@ public class MirrorCommand {
             descBuilder.append(Formatting.RESET);
             descBuilder.append(getMessages().listMirrorLock);
         }
-        Text showText = new TranslatableText(descBuilder.toString(), getConfig().mirrorDateFormat.
+        Text showText = Texts.of(descBuilder.toString(), getConfig().mirrorDateFormat.
                 format(mirrorInfo.getCreateDate()), mirrorInfo.getDescription());
         text.setStyle(new Style().setHoverEvent(
                 new HoverEvent(HoverEvent.Action.SHOW_TEXT, showText)));
@@ -123,7 +124,7 @@ public class MirrorCommand {
     public static int reloadConfig(ServerCommandSource source) {
         try {
             setupConfig();
-            source.sendFeedback(new LiteralText(getMessages().reloadConfig),false);
+            source.sendFeedback(Texts.of(getMessages().reloadConfig),false);
             return 1;
         }catch (Exception e){
             e.printStackTrace();
@@ -134,7 +135,7 @@ public class MirrorCommand {
     public static int reloadMessage(ServerCommandSource source) {
         try {
             setupMessage();
-            source.sendFeedback(new LiteralText(getMessages().reloadMessage),false);
+            source.sendFeedback(Texts.of(getMessages().reloadMessage),false);
             return 1;
         }catch (Exception e){
             e.printStackTrace();
@@ -143,15 +144,15 @@ public class MirrorCommand {
     }
 
     public static int listMirror(ServerCommandSource source) {
-        source.sendFeedback(new LiteralText(getMessages().listMirrorHeader), false);
+        source.sendFeedback(Texts.of(getMessages().listMirrorHeader), false);
         for (MirrorInfo mirrorInfo : getMirrors().values()) {
             LiteralText mirrorText = createMirrorText(source.getMinecraftServer(), mirrorInfo);
             LiteralText returnButtonText = buttonText(getMessages().listMirrorReturnButton, String.format("/mirror return %s", mirrorInfo.getName()), mirrorInfo.getName());
             LiteralText deleteButtonText = buttonText(getMessages().listMirrorDeleteButton, String.format("/mirror delete %s", mirrorInfo.getName()), mirrorInfo.getName());
-            source.sendFeedback(new TranslatableText(getMessages().listMirror, mirrorText, returnButtonText, deleteButtonText), false);
+            source.sendFeedback(Texts.of(getMessages().listMirror, mirrorText, returnButtonText, deleteButtonText), false);
         }
 
-        source.sendFeedback(new TranslatableText(getMessages().listMirrorFooter, getMirrors().size()), false);
+        source.sendFeedback(Texts.of(getMessages().listMirrorFooter, getMirrors().size()), false);
         return 1;
     }
 
@@ -160,29 +161,29 @@ public class MirrorCommand {
         String failurePrefix = getMessages().returnMirrorFailurePrefix + Formatting.RESET;
 
         if(backUpThread != null || returnMirrorThread != null){
-            sendToAll(source, new LiteralText(failurePrefix + MirrorMod.getMessages().otherTaskRunning));
+            sendToAll(source, Texts.of(failurePrefix + MirrorMod.getMessages().otherTaskRunning));
             return 0;
         }
         MirrorInfo mirrorInfo = MirrorMod.getMirrors().get(name);
         if(mirrorInfo == null){
-            sendToAll(source, (new TranslatableText(failurePrefix + getMessages().unknownMirror, name)));
+            sendToAll(source, (Texts.of(failurePrefix + getMessages().unknownMirror, name)));
             return 0;
         }
         File backupFile = getBackFile(mirrorInfo);
         if(!backupFile.exists()){
             getMirrors().remove(name);
             saveMirrors();
-            sendToAll(source, (new TranslatableText(failurePrefix + getMessages().mirrorNotFound, createMirrorText(source.getMinecraftServer(), mirrorInfo))));
+            sendToAll(source, (Texts.of(failurePrefix + getMessages().mirrorNotFound, createMirrorText(source.getMinecraftServer(), mirrorInfo))));
         }
         File worldFolder = new File(source.getMinecraftServer().getLevelName());
 
         if(checkDiskIsFull(worldFolder)){
-            sendToAll(source, (new LiteralText(failurePrefix + getMessages().diskFull)));
+            sendToAll(source, (Texts.of(failurePrefix + getMessages().diskFull)));
             return 0;
         }
         if (!confirm) {
             LiteralText confirmButtonText = buttonText(getMessages().returnConfirmButton, String.format("/mirror return %s confirm", name), name);
-            Text text = new TranslatableText(getMessages().returnConfirm, createMirrorText(source.getMinecraftServer(), mirrorInfo), confirmButtonText);
+            Text text = Texts.of(getMessages().returnConfirm, createMirrorText(source.getMinecraftServer(), mirrorInfo), confirmButtonText);
             source.sendFeedback(text, false);
             return 0;
         }
@@ -208,7 +209,7 @@ public class MirrorCommand {
         returnMirrorThread = new Thread(() -> {
             try {
                 cancel = false;
-                sendToAll(source, new TranslatableText(getMessages().unzipMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
+                sendToAll(source, Texts.of(getMessages().unzipMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
                 if(mirrorInfo.isCompress()){
                     Compress.unzip(backupFile, tempWorldFolder);
                 } else {
@@ -219,10 +220,10 @@ public class MirrorCommand {
                     returnMirrorThread = null;
                     Runtime.getRuntime().removeShutdownHook(shutdownHookThread);
                     tempWorldFolder.delete();
-                    sendToAll(source, new LiteralText(failurePrefix + getMessages().unzipMirrorFailure));
+                    sendToAll(source, Texts.of(failurePrefix + getMessages().unzipMirrorFailure));
                     return;
                 }
-                sendToAll(source, new TranslatableText(getMessages().serverWillRestart, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
+                sendToAll(source, Texts.of(getMessages().serverWillRestart, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
 
                 LiteralText cancelButton = buttonText(getMessages().cancelReturnMirrorButton, "/mirror cancel", name);
 
@@ -234,7 +235,7 @@ public class MirrorCommand {
                         tempWorldFolder.delete();
                         return;
                     }
-                    sendToAll(source, new TranslatableText(getMessages().serverRestatingCountdown, i, cancelButton));
+                    sendToAll(source, Texts.of(getMessages().serverRestatingCountdown, i, cancelButton));
                     Thread.sleep(1000);
                 }
                 source.getMinecraftServer().getPlayerManager().disconnectAllPlayers();
@@ -256,24 +257,24 @@ public class MirrorCommand {
     public static int lock(ServerCommandSource source, String name){
         MirrorInfo mirrorInfo = getMirrors().get(name);
         if(mirrorInfo == null){
-            source.sendError(new TranslatableText(getMessages().lockMirrorFailurePrefix + Formatting.RESET + getMessages().unknownMirror, name));
+            source.sendError(Texts.of(getMessages().lockMirrorFailurePrefix + Formatting.RESET + getMessages().unknownMirror, name));
             return 0;
         }
         mirrorInfo.setLock(true);
         saveMirrors();
-        sendToAll(source, new TranslatableText(getMessages().lockMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
+        sendToAll(source, Texts.of(getMessages().lockMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
 
         return 1;
     }
     public static int unlock(ServerCommandSource source, String name){
         MirrorInfo mirrorInfo = getMirrors().get(name);
         if(mirrorInfo == null){
-            source.sendError(new TranslatableText(getMessages().unlockMirrorFailurePrefix + Formatting.RESET + getMessages().unknownMirror, name));
+            source.sendError(Texts.of(getMessages().unlockMirrorFailurePrefix + Formatting.RESET + getMessages().unknownMirror, name));
             return 0;
         }
         mirrorInfo.setLock(false);
         saveMirrors();
-        sendToAll(source, new TranslatableText(getMessages().unlockMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
+        sendToAll(source, Texts.of(getMessages().unlockMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
         return 1;
     }
 
@@ -283,19 +284,19 @@ public class MirrorCommand {
 
         MirrorInfo mirrorInfo = getMirrors().get(name);
         if(mirrorInfo == null){
-            sendToAll(source, new TranslatableText(failurePrefix + getMessages().unknownMirror, name));
+            sendToAll(source, Texts.of(failurePrefix + getMessages().unknownMirror, name));
             return 0;
         }
         if(mirrorInfo.isLock()){
-            sendToAll(source, new TranslatableText(failurePrefix + getMessages().mirrorIsLocked, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
+            sendToAll(source, Texts.of(failurePrefix + getMessages().mirrorIsLocked, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
             return 0;
         }
         if(backUpThread != null || returnMirrorThread != null){
-            sendToAll(source, new LiteralText(failurePrefix + MirrorMod.getMessages().otherTaskRunning));
+            sendToAll(source, Texts.of(failurePrefix + MirrorMod.getMessages().otherTaskRunning));
             return 0;
         }
         if(!confirm){
-            Text text = new TranslatableText(getMessages().deleteMirrorConfirm, createMirrorText(source.getMinecraftServer(), mirrorInfo));
+            Text text = Texts.of(getMessages().deleteMirrorConfirm, createMirrorText(source.getMinecraftServer(), mirrorInfo));
             LiteralText overrideMessage = buttonText(getMessages().deleteMirrorConfirmButton,  String.format("/mirror delete %s confirm", name), name);
             text.append(overrideMessage);
             source.sendFeedback(text, false);
@@ -304,12 +305,12 @@ public class MirrorCommand {
         File backupFile = getBackFile(mirrorInfo);
         if(!backupFile.exists()){
             getMirrors().remove(name);
-            sendToAll(source, new TranslatableText(failurePrefix + getMessages().mirrorNotFound, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
+            sendToAll(source, Texts.of(failurePrefix + getMessages().mirrorNotFound, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
         }
         getMirrors().remove(name);
         backupFile.delete();
         saveMirrors();
-        sendToAll(source, new TranslatableText(getMessages().deleteMirror,
+        sendToAll(source, Texts.of(getMessages().deleteMirror,
                 createMirrorText(source.getMinecraftServer(), mirrorInfo)));
         return 1;
     }
@@ -319,21 +320,21 @@ public class MirrorCommand {
         String failurePrefix = getMessages().createMirrorFailurePrefix + Formatting.RESET;
 
         if(backUpThread != null || returnMirrorThread != null){
-            sendToAll(source, new TranslatableText(failurePrefix + getMessages().otherTaskRunning));
+            sendToAll(source, Texts.of(failurePrefix + getMessages().otherTaskRunning));
             return 0;
         }
         MirrorInfo mirrorInfo = getMirrors().get(name);
 
         if(mirrorInfo != null){
             if(mirrorInfo.isLock()){
-                sendToAll(source, new TranslatableText(failurePrefix + getMessages().mirrorIsLocked, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
+                sendToAll(source, Texts.of(failurePrefix + getMessages().mirrorIsLocked, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
                 return 0;
             }
             if(!overwrite){
 
                 LiteralText overrideButton = buttonText(getMessages().crateMirrorOverwriteButton,
                         String.format("/mirror create %s overwrite %s", name, description), name);
-                Text message = new TranslatableText(getMessages().crateMirrorOverwrite, createMirrorText(source.getMinecraftServer(), mirrorInfo), overrideButton);
+                Text message = Texts.of(getMessages().crateMirrorOverwrite, createMirrorText(source.getMinecraftServer(), mirrorInfo), overrideButton);
                 source.sendFeedback(message, false);
                 return 0;
             }else {
@@ -342,14 +343,14 @@ public class MirrorCommand {
             }
         } else {
             if(getMirrors().size() >= getConfig().createMirrorLimit){
-                sendToAll(source, new TranslatableText(failurePrefix + getMessages().createMirrorLimit,
+                sendToAll(source, Texts.of(failurePrefix + getMessages().createMirrorLimit,
                         getMirrors().size(), getConfig().createMirrorLimit));
                 return 0;
             }
         }
         File worldFolder = new File(source.getMinecraftServer().getLevelName());
         if(checkDiskIsFull(worldFolder)){
-            sendToAll(source, new LiteralText(failurePrefix + getMessages().diskFull));
+            sendToAll(source, Texts.of(failurePrefix + getMessages().diskFull));
             return 0;
         }
         long startDate = System.currentTimeMillis();
@@ -376,7 +377,7 @@ public class MirrorCommand {
         MirrorInfo finalMirrorInfo = mirrorInfo;
         backUpThread = new Thread(() -> {
             try {
-                sendToAll(source, new TranslatableText(getMessages().startBackup, createMirrorText(source.getMinecraftServer(), finalMirrorInfo)));
+                sendToAll(source, Texts.of(getMessages().startBackup, createMirrorText(source.getMinecraftServer(), finalMirrorInfo)));
                 if(getConfig().compressBackupFile){
                     Compress.zip(worldFolder, backupOutFile);
                 }else {
@@ -384,7 +385,7 @@ public class MirrorCommand {
                 }
                 getMirrors().put(name, finalMirrorInfo);
                 saveMirrors();
-                sendToAll(source, new TranslatableText(getMessages().backupFinish, System.currentTimeMillis() - startDate));
+                sendToAll(source, Texts.of(getMessages().backupFinish, System.currentTimeMillis() - startDate));
             } catch (Exception e) {
                 backupOutFile.delete();
                 e.printStackTrace();
@@ -416,14 +417,14 @@ public class MirrorCommand {
     }
 
     private static Text exceptionMessage(String message, Exception e){
-        Text text3 = new LiteralText(e.getMessage() == null ? e.getClass().getName() : e.getMessage());
+        Text text3 = Texts.of(e.getMessage() == null ? e.getClass().getName() : e.getMessage());
         StackTraceElement[] stackTraceElements = e.getStackTrace();
 
         for(int j = 0; j < Math.min(stackTraceElements.length, 3); ++j) {
             text3.append("\n\n").append(stackTraceElements[j].getMethodName()).append("\n ").append(stackTraceElements[j].getFileName()).append(":").append(String.valueOf(stackTraceElements[j].getLineNumber()));
         }
 
-        return new LiteralText(message).styled((style) -> {
+        return Texts.of(message).styled((style) -> {
             style.setHoverEvent(new HoverEvent(net.minecraft.text.HoverEvent.Action.SHOW_TEXT, text3));
         });
     }
@@ -431,18 +432,18 @@ public class MirrorCommand {
     private static int cancelTask(ServerCommandSource source) {
         if(returnMirrorThread != null){
             MirrorCommand.cancel = true;
-            sendToAll(source, new LiteralText(getMessages().cancelReturnMirror));
+            sendToAll(source, Texts.of(getMessages().cancelReturnMirror));
         } else {
-            sendToAll(source, new TranslatableText(MirrorMod.getMessages().noneReturnMirrorTask));
+            sendToAll(source, Texts.of(MirrorMod.getMessages().noneReturnMirrorTask));
         }
         return 1;
     }
 
     private static LiteralText buttonText(ButtonText buttonText, String command, String name){
-        LiteralText literalText = new LiteralText(buttonText.text);
+        LiteralText literalText = Texts.of(buttonText.text);
         Style style = new Style();
         style.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command));
-        style.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableText(buttonText.description, name)));
+        style.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Texts.of(buttonText.description, name)));
         literalText.setStyle(style);
         return literalText;
     }
