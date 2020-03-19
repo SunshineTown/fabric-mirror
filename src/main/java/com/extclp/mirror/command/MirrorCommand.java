@@ -5,6 +5,7 @@ import com.extclp.mirror.config.ButtonText;
 import com.extclp.mirror.config.MirrorInfo;
 import com.extclp.mirror.utils.Compress;
 import com.extclp.mirror.utils.Texts;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -107,7 +108,12 @@ public class MirrorCommand {
         if(mirrorInfo.getOwner() != null){
             descBuilder.append('\n');
             descBuilder.append(Formatting.RESET);
-            descBuilder.append(String.format(getMessages().listMirrorOwner, server.getUserCache().getByUuid(mirrorInfo.getOwner()).getName()));
+            GameProfile creator = server.getUserCache().getByUuid(mirrorInfo.getOwner());
+            if(creator != null){
+                descBuilder.append(String.format(getMessages().listMirrorOwner, creator.getName()));
+            } else {
+                descBuilder.append(String.format(getMessages().listMirrorOwner, mirrorInfo.getOwner()));
+            }
         }
         if(mirrorInfo.isLock()){
             descBuilder.append('\n');
