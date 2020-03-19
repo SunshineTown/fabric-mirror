@@ -3,7 +3,7 @@ package com.extclp.mirror.command;
 import com.extclp.mirror.MirrorMod;
 import com.extclp.mirror.config.ButtonText;
 import com.extclp.mirror.config.MirrorInfo;
-import com.extclp.mirror.utils.Compress;
+import com.extclp.mirror.utils.PathUtils;
 import com.extclp.mirror.utils.Texts;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
@@ -217,9 +217,9 @@ public class MirrorCommand {
                 cancel = false;
                 sendToAll(source, Texts.of(getMessages().unzipMirror, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
                 if(mirrorInfo.isCompress()){
-                    Compress.unzip(backupFile, tempWorldFolder);
+                    PathUtils.unzip(backupFile.toPath(), tempWorldFolder.toPath());
                 } else {
-                    Compress.copy(backupFile, tempWorldFolder);
+                    PathUtils.copy(backupFile.toPath(), tempWorldFolder.toPath());
                 }
                 if(!checkWorldFolder(tempWorldFolder)){
                     cancel = false;
@@ -385,9 +385,9 @@ public class MirrorCommand {
             try {
                 sendToAll(source, Texts.of(getMessages().startBackup, createMirrorText(source.getMinecraftServer(), finalMirrorInfo)));
                 if(getConfig().compressBackupFile){
-                    Compress.zip(worldFolder, backupOutFile);
+                    PathUtils.zip(worldFolder.toPath(), backupOutFile.toPath());
                 }else {
-                    Compress.copy(worldFolder, backupOutFile);
+                    PathUtils.copy(worldFolder.toPath(), backupOutFile.toPath());
                 }
                 getMirrors().put(name, finalMirrorInfo);
                 saveMirrors();
