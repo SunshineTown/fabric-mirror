@@ -172,19 +172,19 @@ public class MirrorCommand {
         }
         MirrorInfo mirrorInfo = MirrorMod.getMirrors().get(name);
         if(mirrorInfo == null){
-            sendToAll(source, (Texts.of(failurePrefix + getMessages().unknownMirror, name)));
+            sendToAll(source, Texts.of(failurePrefix + getMessages().unknownMirror, name));
             return 0;
         }
         File backupFile = getBackFile(mirrorInfo);
         if(!backupFile.exists()){
             getMirrors().remove(name);
             saveMirrors();
-            sendToAll(source, (Texts.of(failurePrefix + getMessages().mirrorNotFound, createMirrorText(source.getMinecraftServer(), mirrorInfo))));
+            sendToAll(source, Texts.of(failurePrefix + getMessages().mirrorNotFound, createMirrorText(source.getMinecraftServer(), mirrorInfo)));
         }
         File worldFolder = new File(source.getMinecraftServer().getLevelName());
 
         if(checkDiskIsFull(worldFolder)){
-            sendToAll(source, (Texts.of(failurePrefix + getMessages().diskFull)));
+            sendToAll(source, Texts.of(failurePrefix + getMessages().diskFull));
             return 0;
         }
         if (!confirm) {
