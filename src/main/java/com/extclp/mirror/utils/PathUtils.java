@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.*;
-import java.util.stream.Collectors;
+import java.nio.file.attribute.BasicFileAttributes;
 
 public class PathUtils {
 
@@ -25,25 +25,45 @@ public class PathUtils {
     public static void zip(Path from, Path to) throws IOException, URISyntaxException {
         createParentDirectory(to);
         try (FileSystem fs = createZipFileSystem(to)){
-            copy(from, fs.getPath("/"));
+            zipCopy(from, fs.getPath("/"));
         }
     }
     public static void unzip(Path from, Path to) throws IOException, URISyntaxException {
         Files.createDirectories(to);
         try (FileSystem fs = createZipFileSystem(from)){
-            copy(fs.getPath("/"), to);
+            zipCopy(fs.getPath("/"), to);
         }
+    }
+    private static void zipCopy(Path from, Path to) throws IOException {
+        Files.walkFileTree(from, new SimpleFileVisitor<Path>(){@Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            if(!Files.isSameFile(from, dir)){
+                Files.createDirectory(from.resolve(from.relativize(dir).toString()));
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.copy(file, to.resolve(from.relativize(file).toString()), StandardCopyOption.COPY_ATTRIBUTES);
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 
     public static void copy(Path from, Path to) throws IOException {
-        for (Path path : Files.list(from).collect(Collectors.toList())) {
-            Path targetPath = to.resolve(path.getFileName().toString());
-            if(Files.isDirectory(path)){
-                Files.createDirectory(targetPath);
-                copy(path, targetPath);
-            }else {
-                Files.copy(path, targetPath, StandardCopyOption.COPY_ATTRIBUTES);
+        Files.walkFileTree(from, new SimpleFileVisitor<Path>(){
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                Files.createDirectory(to.resolve(from.relativize(dir)));
+                return FileVisitResult.CONTINUE;
             }
-        }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.copy(file, to.resolve(from.relativize(file)), StandardCopyOption.COPY_ATTRIBUTES);
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 }
