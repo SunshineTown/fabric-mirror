@@ -12,7 +12,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.registry.CommandRegistry;
+import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 
 import java.io.File;
 import java.io.FileReader;
@@ -92,7 +92,7 @@ public class MirrorMod implements ModInitializer {
     public void onInitialize() {
         try {
             if(setupMessage() && setupConfig() && loadMirrors()){
-                CommandRegistry.INSTANCE.register(true, MirrorCommand::register);
+                CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> MirrorCommand.register(dispatcher));
             }
         } catch (IOException e) {
             e.printStackTrace();

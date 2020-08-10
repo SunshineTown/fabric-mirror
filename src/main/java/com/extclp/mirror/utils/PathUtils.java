@@ -1,7 +1,6 @@
 package com.extclp.mirror.utils;
 
 import com.google.common.collect.ImmutableMap;
-import jdk.nio.zipfs.ZipFileSystemProvider;
 
 import java.io.IOException;
 import java.net.URI;

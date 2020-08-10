@@ -6,14 +6,13 @@
   "authors": [
     "extclp"
   ],
-  "environment": "SERVER",
+  "environment": "server",
   "entrypoints": {
     "main": [
       "com.extclp.mirror.MirrorMod"
     ]
   },
   "depends": {
-    "fabricloader": "*",
-    "fabric": "*"
+      "fabric-command-api-v1": "*"
   }
 }

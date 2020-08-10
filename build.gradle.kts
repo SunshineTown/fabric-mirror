@@ -1,16 +1,20 @@
 plugins {
-    id ("fabric-loom") version "0.2.6-SNAPSHOT"
+    id ("fabric-loom") version "0.5-SNAPSHOT"
 }
 
-version = properties["mod_version"] as String + "-" + properties["minecraft_version"]
+version = properties["mod_version"] as String + "-mc1.14"
 group = properties["maven_group"] as String
-extra["archivesBaseName"] =  properties["archives_base_name"]
+
+base {
+    archivesBaseName = properties["archives_base_name"] as String
+}
 
 dependencies {
     minecraft("com.mojang:minecraft:${properties["minecraft_version"]}")
     mappings("net.fabricmc:yarn:${properties["yarn_mappings"]}:v2")
     modCompile("net.fabricmc:fabric-loader:${properties["loader_version"]}")
-    modCompile(	"net.fabricmc.fabric-api:fabric-commands-v0:0.1.2+28f8190f42")
+
+    modCompile(	"net.fabricmc.fabric-api:fabric-api:${properties["fabric_version"]}")
 }
 
 configure<JavaPluginConvention> {
